@@ -161,8 +161,9 @@ func TestCodecScanValuePolymorphic(t *testing.T) {
 
 				err = conn.QueryRow(ctx, query, pgx.QueryResultFormats{format}).Scan(&point)
 				assert.Error(t, err)
-				err = err.(pgx.ScanArgError).Err
-				assert.Equal(t, err.Error(), "pgxgeom: got *geom.Polygon, want *geom.Point")
+				var scanArgError pgx.ScanArgError
+				assert.True(t, errors.As(err, &scanArgError))
+				assert.Equal(t, scanArgError.Err.Error(), "pgxgeom: got *geom.Polygon, want *geom.Point")
 			})
 		}
 	})
@@ -172,12 +173,12 @@ type CustomPoint struct {
 	*geom.Point
 }
 
-var customPointScanError = errors.New("invalid target for CustomPoint")
+var errCustomPointScan = errors.New("invalid target for CustomPoint")
 
 func (c *CustomPoint) ScanGeom(v geom.T) error {
 	concrete, ok := v.(*geom.Point)
 	if !ok {
-		return customPointScanError
+		return errCustomPointScan
 	}
 	c.Point = concrete
 	return nil
@@ -221,7 +222,7 @@ func TestCodecScanValueCustom(t *testing.T) {
 
 				err = conn.QueryRow(ctx, polygonQuery, pgx.QueryResultFormats{format}).Scan(&point)
 				assert.Error(t, err)
-				assert.Equal(t, err, error(pgx.ScanArgError{Err: customPointScanError}))
+				assert.Equal(t, err, error(pgx.ScanArgError{Err: errCustomPointScan}))
 			})
 		}
 	})
