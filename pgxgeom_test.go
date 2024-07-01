@@ -98,7 +98,7 @@ func TestCodecDecodeNullGeometry(t *testing.T) {
 	})
 }
 
-func TestCodecScanValue(t *testing.T) {
+func TestCodecScanValueGeometry(t *testing.T) {
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, tb testing.TB, conn *pgx.Conn) {
 		tb.Helper()
 		for _, format := range []int16{
@@ -108,6 +108,23 @@ func TestCodecScanValue(t *testing.T) {
 			tb.(*testing.T).Run(strconv.Itoa(int(format)), func(t *testing.T) {
 				var geom geom.T
 				err := conn.QueryRow(ctx, "select ST_SetSRID('POINT(1 2)'::geometry, 4326)", pgx.QueryResultFormats{format}).Scan(&geom)
+				assert.NoError(t, err)
+				// assert.Equal(t, mustNewGeomFromWKT(t, "POINT(1 2)", 4326).SetSRID(4326).ToEWKBWithSRID(), geom.ToEWKBWithSRID())
+			})
+		}
+	})
+}
+
+func TestCodecScanValueGeography(t *testing.T) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, tb testing.TB, conn *pgx.Conn) {
+		tb.Helper()
+		for _, format := range []int16{
+			pgx.BinaryFormatCode,
+			pgx.TextFormatCode,
+		} {
+			tb.(*testing.T).Run(strconv.Itoa(int(format)), func(t *testing.T) {
+				var geom geom.T
+				err := conn.QueryRow(ctx, "select ST_SetSRID('POINT(1 2)'::geography, 4326)", pgx.QueryResultFormats{format}).Scan(&geom)
 				assert.NoError(t, err)
 				// assert.Equal(t, mustNewGeomFromWKT(t, "POINT(1 2)", 4326).SetSRID(4326).ToEWKBWithSRID(), geom.ToEWKBWithSRID())
 			})
