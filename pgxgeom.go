@@ -77,7 +77,7 @@ type GeomScanner interface {
 	ScanGeom(v geom.T) error
 }
 
-// GeomValuer enables PostGIS geometry/geography values to be marshalled from
+// GeomValuer enables PostGIS geometry/geography values to be marshaled from
 // arbitrary Go types. For more context, see section "Extending Existing
 // PostgreSQL Type Support" of the README for jackc/pgx/v5/pgtype.
 type GeomValuer interface {
@@ -87,7 +87,7 @@ type GeomValuer interface {
 // ErrUnexpectedType indicates that a PostGIS value did not meet the type
 // constraints to be scanned into a particular Go value. For example, this
 // occurs when attempting to scan a `geometry(point)` into a `*geom.Polygon`.
-type ErrUnexpectedType struct {
+type ErrUnexpectedType struct { //nolint: errname
 	Got  any
 	Want any
 }
@@ -99,7 +99,7 @@ func (e ErrUnexpectedType) Error() string {
 // ErrUnsupportedType indicates that a given Go value could not be converted to
 // a GeomScanner/GeomValuer. For example, this occurs if you attempt to scan
 // into a `*bool`.
-type ErrUnsupportedType struct {
+type ErrUnsupportedType struct { //nolint: errname
 	Got any
 }
 
@@ -146,6 +146,7 @@ func (sc concreteScanner[T]) ScanGeom(v geom.T) error {
 	return nil
 }
 
+//nolint:ireturn
 func getGeomScanner(v any) (GeomScanner, error) {
 	switch v := v.(type) {
 	case GeomScanner:
@@ -171,6 +172,7 @@ func getGeomScanner(v any) (GeomScanner, error) {
 	}
 }
 
+//nolint:ireturn
 func getGeomValuer(v any) (GeomValuer, error) {
 	switch v := v.(type) {
 	case GeomValuer:
